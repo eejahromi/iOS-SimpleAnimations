@@ -23,6 +23,15 @@ class ViewController: UIViewController {
 
         checkBox.center = view.center
         view.addSubview(checkBox)
+        
+        createPath()
+    }
+    
+    private func createPath() {
+        let path = UIBezierPath()
+        path.move(to: CGPoint(x: 10, y: 110 * 3 / 5))
+        path.addLine(to: CGPoint(x: 100 / 2, y: 110))
+        path.addLine(to: CGPoint(x: 140, y: 20))
     }
 
 }
