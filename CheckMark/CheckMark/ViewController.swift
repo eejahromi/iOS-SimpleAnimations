@@ -6,10 +6,11 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, CAAnimationDelegate {
     
-    var pathAnimation: CABasicAnimation!
     let pathLayer = CAShapeLayer()
+    var pathAnimation: CABasicAnimation!
+    var reversePathAnimation: CABasicAnimation!
     
     var check: Bool = false {
         didSet {
@@ -18,6 +19,10 @@ class ViewController: UIViewController {
                 self.pathLayer.strokeEnd = 1.0
                 self.pathLayer.removeAllAnimations()
                 self.pathLayer.add(self.pathAnimation, forKey:"strokeEnd")
+            } else {
+                pathLayer.strokeEnd = 0.0
+                pathLayer.removeAllAnimations()
+                pathLayer.add(reversePathAnimation, forKey:"strokeEnd")
             }
         }
     }
@@ -34,20 +39,32 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        pathAnimation = CABasicAnimation(keyPath: "strokeEnd")
-
-        checkBox.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(ViewController.checkMarkTapped(sender:))))
+        checkBox.addGestureRecognizer(UITapGestureRecognizer(target: self,
+                                                             action: #selector(ViewController.checkMarkTapped(sender:))))
         checkBox.center = view.center
         view.addSubview(checkBox)
         
+        pathAnimation = CABasicAnimation(keyPath: "strokeEnd")
+        reversePathAnimation = CABasicAnimation(keyPath:"strokeEnd")
+        reversePathAnimation.delegate = self
+
         createPath()
+        addAnimation(animation: pathAnimation, from: 0, to: 1)
+        addAnimation(animation: reversePathAnimation, from: 1, to: 0)
     }
     
     private func createPath() {
+        /**
+                           * <- (3)
+                         *
+         (1) ->  *     *
+                  *  *
+           (2) ->  *
+         */
         let path = UIBezierPath()
-        path.move(to: CGPoint(x: 20, y: 120 * 3 / 5))
-        path.addLine(to: CGPoint(x: 100 / 2, y: 110))
-        path.addLine(to: CGPoint(x: 120, y: 40))
+        path.move(to: CGPoint(x: 20, y: 120 * 3 / 5)) // (1)
+        path.addLine(to: CGPoint(x: 100 / 2, y: 110)) // (2)
+        path.addLine(to: CGPoint(x: 120, y: 40))      // (3)
         
         pathLayer.frame = checkBox.bounds
         pathLayer.path = path.cgPath
@@ -56,14 +73,16 @@ class ViewController: UIViewController {
         pathLayer.lineWidth = 12
         pathLayer.lineJoin = kCALineJoinRound
         pathLayer.lineCap = kCALineCapRound
-        
-        addAnimation(animation: CABasicAnimation(keyPath:"strokeEnd"), from: 0, to: 1)
     }
     
     private func addAnimation(animation: CABasicAnimation, duration: CFTimeInterval = 0.5, from: Double, to: Double) {
-        pathAnimation.duration = duration
-        pathAnimation.fromValue = NSNumber(floatLiteral: from)
-        pathAnimation.toValue = NSNumber(floatLiteral: to)
+        animation.duration = duration
+        animation.fromValue = NSNumber(floatLiteral: from)
+        animation.toValue = NSNumber(floatLiteral: to)
+    }
+    
+    public func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
+        pathLayer.removeFromSuperlayer()
     }
     
     //MARK: - Action
