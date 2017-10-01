@@ -10,7 +10,18 @@ class ViewController: UIViewController {
     
     var pathAnimation: CABasicAnimation!
     let pathLayer = CAShapeLayer()
-        
+    
+    var check: Bool = false {
+        didSet {
+            if check {
+                self.checkBox.layer.addSublayer(self.pathLayer)
+                self.pathLayer.strokeEnd = 1.0
+                self.pathLayer.removeAllAnimations()
+                self.pathLayer.add(self.pathAnimation, forKey:"strokeEnd")
+            }
+        }
+    }
+    
     var checkBox:UIView = {
         let box = UIView()
         box.frame = CGRect(x: 0.0, y: 0.0, width: 150.0, height: 150.0)
@@ -25,21 +36,11 @@ class ViewController: UIViewController {
         
         pathAnimation = CABasicAnimation(keyPath: "strokeEnd")
 
+        checkBox.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(ViewController.checkMarkTapped(sender:))))
         checkBox.center = view.center
         view.addSubview(checkBox)
         
         createPath()
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 , execute: {
-            self.checkBox.layer.addSublayer(self.pathLayer)
-            self.pathLayer.strokeEnd = 1.0
-            self.pathLayer.removeAllAnimations()
-            self.pathLayer.add(self.pathAnimation, forKey:"strokeEnd")
-        })
     }
     
     private func createPath() {
@@ -64,9 +65,15 @@ class ViewController: UIViewController {
         pathAnimation.fromValue = NSNumber(floatLiteral: from)
         pathAnimation.toValue = NSNumber(floatLiteral: to)
     }
+    
+    //MARK: - Action
+    @objc func checkMarkTapped(sender: UIGestureRecognizer) {
+        check = !check
+    }
 
 }
 
+// MARK: -
 extension UIColor {
     convenience public init(red: CGFloat, green: CGFloat, blue: CGFloat) {
         self.init(red: red/255, green: green/255, blue: blue/255, alpha: 1)
